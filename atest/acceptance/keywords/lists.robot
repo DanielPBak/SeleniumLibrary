@@ -60,12 +60,12 @@ List Selection Should Be
     List Selection Should Be    possible_channels    Telephone    Email
     List Selection Should Be    possible_channels    phone    email
     Run Keyword And Expect Error
-    ...    List 'possible_channels' should have had selection [ Email | Telephone | Direct mail ] but selection was [ Email (email) | Telephone (phone) ].
+    ...    List 'possible_channels' should have had selection ? Email | Telephone | Direct mail ? but selection was ? Email (email) | Telephone (phone) ?.
     ...    List Selection Should Be    possible_channels    Email    Telephone    Direct mail
 
 List Selection Should Be When Extraneous Options Are Selected
     Run Keyword And Expect Error
-    ...    List 'possible_channels' should have had selection [ email ] but selection was [ Email (email) | Telephone (phone) ].
+    ...    List 'possible_channels' should have had selection ? email ? but selection was ? Email (email) | Telephone (phone) ?.
     ...    List Selection Should Be    possible_channels    email
 
 List Selection Should Be When List Does Not Exist
@@ -74,7 +74,6 @@ List Selection Should Be When List Does Not Exist
     ...    List Selection Should Be    nonexisting    whatever
 
 UnSelect Single Value From List
-    [Documentation]    LOG 2.1 Unselecting option(s) 'Email' from list 'possible_channels'.
     Unselect and Verify Selection    possible_channels    Email    phone
     # Unselecting already unselected option has no effect
     Unselect and Verify Selection    possible_channels    Email    phone
@@ -84,7 +83,6 @@ UnSelect Single Value From List
     ...    Unselect From List    preferred_channel
 
 Unselect all options using Unselect From List
-    [Documentation]    LOG 2 Unselecting all options from list 'possible_channels'.
     Unselect From List    possible_channels
     List Should Have No Selections    possible_channels
 
@@ -99,12 +97,11 @@ Unselect All From List
     List Should Have No Selections    interests
 
 Select From Single Selection List
-    [Documentation]    LOG 2.1 Selecting option(s) 'Email' from list 'preferred_channel'.
     Select And verify selection    preferred_channel    Email    Email
     Select And verify selection    preferred_channel    Email    Email
     Select And verify selection    preferred_channel    directmail    Direct mail
     Select From List    preferred_channel    Telephone
-    # do something else... anything to ensure the list is really set as the next keyword will pass 
+    # do something else... anything to ensure the list is really set as the next keyword will pass
     # if list item is highlighted but not selected
     Unselect from List    possible_channels
     List Selection Should Be    preferred_channel    Telephone
@@ -120,7 +117,7 @@ Select Non-Existing Item From Single Selection List
     ...    ValueError: Option 'Tin Can Phone' not in list 'preferred_channel'.
     ...    Select From List    preferred_channel    Smoke Signals    Email    Tin Can Phone
     Run Keyword And Expect Error
-    ...    NoSuchElementException: Message: Could not locate element with visible text: Tin Can Phone
+    ...    NoSuchElementException: Message: Could not locate element with visible text: Tin Can Phone?
     ...    Select From List By Label    preferred_channel    Tin Can Phone
 
 Select Non-Existing Item From Multi-Selection List
@@ -135,12 +132,10 @@ Select Non-Existing Item From Multi-Selection List
     ...    Select From List    possible_channels    Tin Can Phone    Email    Smoke Signals
 
 Unselect Non-Existing Item From List
-    [Documentation]    LOG 3 Unselecting option(s) 'Tin Can Phone, Smoke Signals, Email' from list 'possible_channels'.
     Unselect From List    possible_channels    Tin Can Phone    Smoke Signals
     Unselect From List    possible_channels    Tin Can Phone    Smoke Signals    Email
 
 Select From Multiselect List
-    [Documentation]    LOG 6 Selecting option(s) 'Direct mail, phone' from list 'possible_channels'.
     Select And verify selection    possible_channels    Email    Email    Telephone
     Select And verify selection    possible_channels    email    email    phone
     Select And verify selection    possible_channels    Direct mail    Direct mail    Email    Telephone
@@ -161,7 +156,7 @@ List Should Have No Selections
     List Should Have No Selections    interests
     Select All From List    interests
     Run Keyword And Expect Error
-    ...    List 'interests' should have had no selection but selection was [ Males (males) | Females (females) | Others (others) ].
+    ...    List 'interests' should have had no selection but selection was ? Males (males) | Females (females) | Others (others) ?.
     ...    List Should Have No Selections    interests
 
 *** Keywords ***

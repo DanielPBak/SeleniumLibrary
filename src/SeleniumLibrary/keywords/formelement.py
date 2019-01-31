@@ -65,7 +65,7 @@ class FormElementKeywords(LibraryComponent):
                                  "selected." % locator)
 
     @keyword
-    def page_should_contain_checkbox(self, locator, message=None, loglevel='INFO'):
+    def page_should_contain_checkbox(self, locator, message=None, loglevel='TRACE'):
         """Verifies checkbox ``locator`` is found from current page.
 
         See `Page Should Contain Element` for explanation about ``message``
@@ -77,7 +77,7 @@ class FormElementKeywords(LibraryComponent):
         self.assert_page_contains(locator, 'checkbox', message, loglevel)
 
     @keyword
-    def page_should_not_contain_checkbox(self, locator, message=None, loglevel='INFO'):
+    def page_should_not_contain_checkbox(self, locator, message=None, loglevel='TRACE'):
         """Verifies checkbox ``locator`` is not found from current page.
 
         See `Page Should Contain Element` for explanation about ``message``
@@ -117,7 +117,7 @@ class FormElementKeywords(LibraryComponent):
             element.click()
 
     @keyword
-    def page_should_contain_radio_button(self, locator, message=None, loglevel='INFO'):
+    def page_should_contain_radio_button(self, locator, message=None, loglevel='TRACE'):
         """Verifies radio button ``locator`` is found from current page.
 
         See `Page Should Contain Element` for explanation about ``message``
@@ -130,7 +130,7 @@ class FormElementKeywords(LibraryComponent):
         self.assert_page_contains(locator, 'radio button', message, loglevel)
 
     @keyword
-    def page_should_not_contain_radio_button(self, locator, message=None, loglevel='INFO'):
+    def page_should_not_contain_radio_button(self, locator, message=None, loglevel='TRACE'):
         """Verifies radio button ``locator`` is not found from current page.
 
         See `Page Should Contain Element` for explanation about ``message``
@@ -248,7 +248,7 @@ class FormElementKeywords(LibraryComponent):
         self._input_text_into_text_field(locator, text)
 
     @keyword
-    def page_should_contain_textfield(self, locator, message=None, loglevel='INFO'):
+    def page_should_contain_textfield(self, locator, message=None, loglevel='TRACE'):
         """Verifies text field ``locator`` is found from current page.
 
         See `Page Should Contain Element` for explanation about ``message``
@@ -260,7 +260,7 @@ class FormElementKeywords(LibraryComponent):
         self.assert_page_contains(locator, 'text field', message, loglevel)
 
     @keyword
-    def page_should_not_contain_textfield(self, locator, message=None, loglevel='INFO'):
+    def page_should_not_contain_textfield(self, locator, message=None, loglevel='TRACE'):
         """Verifies text field ``locator`` is not found from current page.
 
         See `Page Should Contain Element` for explanation about ``message``
@@ -340,21 +340,7 @@ class FormElementKeywords(LibraryComponent):
         self.info("Content of text area '%s' is '%s'." % (locator, expected))
 
     @keyword
-    def click_button(self, locator):
-        """Clicks button identified by ``locator``.
-
-        See the `Locating elements` section for details about the locator
-        syntax. When using the default locator strategy, buttons are
-        searched using ``id``, ``name`` and ``value``.
-        """
-        self.info("Clicking button '%s'." % locator)
-        element = self.find_element(locator, tag='input', required=False)
-        if not element:
-            element = self.find_element(locator, tag='button')
-        element.click()
-
-    @keyword
-    def page_should_contain_button(self, locator, message=None, loglevel='INFO'):
+    def page_should_contain_button(self, locator, message=None, loglevel='TRACE'):
         """Verifies button ``locator`` is found from current page.
 
         See `Page Should Contain Element` for explanation about ``message``
@@ -370,7 +356,7 @@ class FormElementKeywords(LibraryComponent):
             self.assert_page_contains(locator, 'button', message, loglevel)
 
     @keyword
-    def page_should_not_contain_button(self, locator, message=None, loglevel='INFO'):
+    def page_should_not_contain_button(self, locator, message=None, loglevel='TRACE'):
         """Verifies button ``locator`` is not found from current page.
 
         See `Page Should Contain Element` for explanation about ``message``

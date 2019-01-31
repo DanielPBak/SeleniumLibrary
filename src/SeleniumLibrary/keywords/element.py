@@ -13,13 +13,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from collections import namedtuple
 
+from robot.utils import plural_or_not
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
+
 
 from SeleniumLibrary.base import LibraryComponent, keyword
 from SeleniumLibrary.utils import (is_falsy, is_noney, is_truthy,
                                    plural_or_not as s)
+from SeleniumLibrary.errors import ElementNotFound
 
 
 class ElementKeywords(LibraryComponent):
@@ -77,7 +81,7 @@ class ElementKeywords(LibraryComponent):
         self.info("Element '%s' contains text '%s'." % (locator, expected_before))
 
     @keyword
-    def element_should_not_contain(self, locator, expected, message=None, ignore_case=False ):
+    def element_should_not_contain(self, locator, expected, message=None, ignore_case=False):
         """Verifies that element ``locator`` does not contains text ``expected``.
 
         See the `Locating elements` section for details about the locator
@@ -105,7 +109,7 @@ class ElementKeywords(LibraryComponent):
                   % (locator, expected_before))
 
     @keyword
-    def page_should_contain(self, text, loglevel='INFO'):
+    def page_should_contain(self, text, loglevel='TRACE'):
         """Verifies that current page contains ``text``.
 
         If this keyword fails, it automatically logs the page source
@@ -122,7 +126,7 @@ class ElementKeywords(LibraryComponent):
 
     @keyword
     def page_should_contain_element(self, locator, message=None,
-                                    loglevel='INFO', limit=None):
+                                    loglevel='TRACE', limit=None):
         """Verifies that element ``locator`` is found on the current page.
 
         See the `Locating elements` section for details about the locator
@@ -163,7 +167,7 @@ class ElementKeywords(LibraryComponent):
             raise AssertionError(message)
 
     @keyword
-    def locator_should_match_x_times(self, locator, x, message=None, loglevel='INFO'):
+    def locator_should_match_x_times(self, locator, x, message=None, loglevel='TRACE'):
         """Deprecated, use `Page Should Contain Element` with ``limit`` argument instead."""
         count = len(self.find_elements(locator))
         x = int(x)
@@ -178,7 +182,7 @@ class ElementKeywords(LibraryComponent):
                   % (count, locator))
 
     @keyword
-    def page_should_not_contain(self, text, loglevel='INFO'):
+    def page_should_not_contain(self, text, loglevel='TRACE'):
         """Verifies the current page does not contain ``text``.
 
         See `Page Should Contain` for explanation about the ``loglevel``
@@ -191,7 +195,7 @@ class ElementKeywords(LibraryComponent):
         self.info("Current page does not contain text '%s'." % text)
 
     @keyword
-    def page_should_not_contain_element(self, locator, message=None, loglevel='INFO'):
+    def page_should_not_contain_element(self, locator, message=None, loglevel='TRACE'):
         """Verifies that element ``locator`` is found on the current page.
 
         See the `Locating elements` section for details about the locator
@@ -364,7 +368,7 @@ class ElementKeywords(LibraryComponent):
             raise AssertionError(message)
 
     @keyword
-    def get_element_attribute(self, locator, attribute=None):
+    def get_element_attribute(self, locator, attribute):
         """Returns value of ``attribute`` from element ``locator``.
 
         See the `Locating elements` section for details about the locator
@@ -373,14 +377,10 @@ class ElementKeywords(LibraryComponent):
         Example:
         | ${id}= | `Get Element Attribute` | css:h1 | id |
 
-        Passing attribute name as part of the ``locator`` is deprecated
-        since SeleniumLibrary 3.0. The explicit ``attribute`` argument
+        Passing attribute name as part of the ``locator`` was removed
+        in SeleniumLibrary 3.2. The explicit ``attribute`` argument
         should be used instead.
         """
-        if is_noney(attribute):
-            self.warn("Using 'Get Element Attribute' without explicit "
-                      "attribute is deprecated.")
-            locator, attribute = locator.rsplit('@', 1)
         return self.find_element(locator).get_attribute(attribute)
 
     @keyword
@@ -399,7 +399,7 @@ class ElementKeywords(LibraryComponent):
         if current_expected != expected:
             if is_noney(message):
                 message = ("Element '%s' attribute should have value '%s' but "
-                          "its value was '%s'." % (locator, expected, current_expected))
+                           "its value was '%s'." % (locator, expected, current_expected))
             raise AssertionError(message)
         self.info("Element '%s' attribute '%s' contains value '%s'." % (locator, attribute, expected))
 
@@ -431,6 +431,39 @@ class ElementKeywords(LibraryComponent):
         """
         element = self.find_element(locator)
         return element.size['width'], element.size['height']
+
+    @keyword
+    def cover_element(self, locator):
+        """Will cover elements identified by ``locator`` with a blue div without breaking page layout.
+        
+        See the `Locating elements` section for details about the locator
+        syntax.
+        
+        New in SeleniumLibrary 3.3.0
+        
+        Example:
+        |`Cover Element` | css:div#container |
+        """
+        elements = self.find_elements(locator)
+        if not elements:
+            raise ElementNotFound("No element with locator '%s' found."
+                                  % locator)
+        for element in elements:
+            script = """
+old_element = arguments[0];
+let newDiv = document.createElement('div');
+newDiv.setAttribute("name", "covered");
+newDiv.style.backgroundColor = 'blue';
+newDiv.style.zIndex = '999';
+newDiv.style.top = old_element.offsetTop + 'px';
+newDiv.style.left = old_element.offsetLeft + 'px';
+newDiv.style.height = old_element.offsetHeight + 'px';
+newDiv.style.width = old_element.offsetWidth + 'px';
+old_element.parentNode.insertBefore(newDiv, old_element);
+old_element.remove();
+newDiv.parentNode.style.overflow = 'hidden';
+        """
+            self.driver.execute_script(script, element)
 
     @keyword
     def get_value(self, locator):
@@ -474,6 +507,70 @@ class ElementKeywords(LibraryComponent):
         return self.find_element(locator).location['y']
 
     @keyword
+    def click_button(self, locator, modifier=False):
+        """Clicks button identified by ``locator``.
+
+        See the `Locating elements` section for details about the locator
+        syntax. When using the default locator strategy, buttons are
+        searched using ``id``, ``name`` and ``value``.
+
+        See the `Click Element` keyword for details about the
+        ``modifier`` argument.
+
+        The ``modifier`` argument is new in SeleniumLibrary 3.3
+        """
+        if is_falsy(modifier):
+            self.info("Clicking button '%s'." % locator)
+            element = self.find_element(locator, tag='input', required=False)
+            if not element:
+                element = self.find_element(locator, tag='button')
+            element.click()
+        else:
+            self._click_with_modifier(locator, ['button', 'input'], modifier)
+
+    @keyword
+    def click_image(self, locator, modifier=False):
+        """Clicks an image identified by ``locator``.
+
+        See the `Locating elements` section for details about the locator
+        syntax. When using the default locator strategy, images are searched
+        using ``id``, ``name``, ``src`` and ``alt``.
+
+        See the `Click Element` keyword for details about the
+        ``modifier`` argument.
+
+        The ``modifier`` argument is new in SeleniumLibrary 3.3
+        """
+        if is_falsy(modifier):
+            self.info("Clicking image '%s'." % locator)
+            element = self.find_element(locator, tag='image', required=False)
+            if not element:
+                # A form may have an image as it's submit trigger.
+                element = self.find_element(locator, tag='input')
+            element.click()
+        else:
+            self._click_with_modifier(locator, ['image', 'input'], modifier)
+
+    @keyword
+    def click_link(self, locator, modifier=False):
+        """Clicks a link identified by ``locator``.
+
+        See the `Locating elements` section for details about the locator
+        syntax. When using the default locator strategy, links are searched
+        using ``id``, ``name``, ``href`` and the link text.
+
+        See the `Click Element` keyword for details about the
+        ``modifier`` argument.
+
+        The ``modifier`` argument is new in SeleniumLibrary 3.3
+        """
+        if is_falsy(modifier):
+            self.info("Clicking link '%s'." % locator)
+            self.find_element(locator, tag='link').click()
+        else:
+            self._click_with_modifier(locator, ['link', 'link'], modifier)
+
+    @keyword
     def click_element(self, locator, modifier=False):
         """Click element identified by ``locator``.
 
@@ -500,14 +597,21 @@ class ElementKeywords(LibraryComponent):
             self.info("Clicking element '%s'." % locator)
             self.find_element(locator).click()
         else:
-            modifier = self.parse_modifier(modifier)
-            action = ActionChains(self.driver)
-            for item in modifier:
-                action.key_down(item)
-            action.click(self.find_element(locator))
-            for item in modifier:
-                action.key_up(item)
-            action.perform()
+            self._click_with_modifier(locator, [None, None], modifier)
+
+    def _click_with_modifier(self, locator, tag, modifier):
+        self.info("Clicking %s '%s' with %s." % (tag if tag[0] else 'element', locator, modifier))
+        modifier = self.parse_modifier(modifier)
+        action = ActionChains(self.driver)
+        for item in modifier:
+            action.key_down(item)
+        element = self.find_element(locator, tag=tag[0], required=False)
+        if not element:
+            element = self.find_element(locator, tag=tag[1])
+        action.click(element)
+        for item in modifier:
+            action.key_up(item)
+        action.perform()
 
     @keyword
     def click_element_at_coordinates(self, locator, xoffset, yoffset):
@@ -554,7 +658,7 @@ class ElementKeywords(LibraryComponent):
 
     @keyword
     def focus(self, locator):
-        """Deprecated. Use `Set Focus To Element` instead."""
+        """*DEPRECATED in SeleniumLibrary 3.2.* Use `Set Focus To Element` instead."""
         self.set_focus_to_element(locator)
 
     @keyword
@@ -693,39 +797,111 @@ return !element.dispatchEvent(evt);
 
     @keyword
     def simulate(self, locator, event):
-        """Deprecated. Use `Simulate Event` instead."""
+        """*DEPRECATED in SeleniumLibrary 3.2.* Use `Simulate Event` instead."""
         self.simulate_event(locator, event)
 
     @keyword
     def press_key(self, locator, key):
-        r"""Simulates user pressing key on element identified by ``locator``.
-
-        See the `Locating elements` section for details about the locator
-        syntax.
-
-        ``key`` is either a single character, a string, or a numerical ASCII
-        code of the key lead by '\\'.
-
-        Examples:
-        | `Press Key` | text_field   | q     |
-        | `Press Key` | text_field   | abcde |
-        | `Press Key` | login_button | \\13  | # ASCII code for enter key |
-        """
+        """Deprecated use `Press Keys` instead."""
         if key.startswith('\\') and len(key) > 1:
             key = self._map_ascii_key_code_to_key(int(key[1:]))
         element = self.find_element(locator)
         element.send_keys(key)
 
     @keyword
-    def click_link(self, locator):
-        """Clicks a link identified by ``locator``.
+    def press_keys(self, locator=None, *keys):
+        """Simulates user pressing key(s) to an element or on the active browser.
 
-        See the `Locating elements` section for details about the locator
-        syntax. When using the default locator strategy, links are searched
-        using ``id``, ``name``, ``href`` and the link text.
+
+        If ``locator`` evaluates as false, see `Boolean arguments` for more
+        details, then the ``keys`` are sent to the currently active browser.
+        Otherwise element is searched and ``keys`` are send to the element
+        identified by the ``locator``. In later case, keyword fails if element
+        is not found. See the `Locating elements` section for details about
+        the locator syntax.
+
+        ``keys`` arguments can contain one or many strings, but it can not
+        be empty. ``keys`` can also be a combination of
+        [https://seleniumhq.github.io/selenium/docs/api/py/webdriver/selenium.webdriver.common.keys.html|Selenium Keys]
+        and strings or a single Selenium Key. If Selenium Key is combined
+        with strings, Selenium key and strings must be separated by the
+        `+` character, like in `CONTROL+c`. Selenium Keys
+        are space and case sensitive and Selenium Keys are not parsed
+        inside of the string. Example AALTO, would send string `AALTO`
+        and `ALT` not parsed inside of the string. But `A+ALT+O` would
+        found Selenium ALT key from the ``keys`` argument. It also possible
+        to press many Selenium Keys down at the same time, example
+        'ALT+ARROW_DOWN`.
+
+        If Selenium Keys are detected in the ``keys`` argument, keyword
+        will press the Selenium Key down, send the strings and
+         then release the Selenium Key. If keyword needs to send a Selenium
+        Key as a string, then each character must be separated with
+        `+` character, example `E+N+D`.
+
+        `CTRL` is alias for
+        [https://seleniumhq.github.io/selenium/docs/api/py/webdriver/selenium.webdriver.common.keys.html#selenium.webdriver.common.keys.Keys.CONTROL|Selenium CONTROL]
+        and ESC is alias for
+        [https://seleniumhq.github.io/selenium/docs/api/py/webdriver/selenium.webdriver.common.keys.html#selenium.webdriver.common.keys.Keys.ESCAPE|Selenium ESCAPE]
+
+        New in SeleniumLibrary 3.3
+
+        Examples:
+        | `Press Keys` | text_field | AAAAA          |            | # Sends string "AAAAA" to element.                                                |
+        | `Press Keys` | None       | BBBBB          |            | # Sends string "BBBBB" to currently active browser.                               |
+        | `Press Keys` | text_field | E+N+D          |            | # Sends string "END" to element.                                                  |
+        | `Press Keys` | text_field | XXX            | YY         | # Sends strings "XXX" and "YY" to element.                                        |
+        | `Press Keys` | text_field | XXX+YY         |            | # Same as above.                                                                  |
+        | `Press Keys` | text_field | ALT+ARROW_DOWN |            | # Pressing "ALT" key down, then pressing ARROW_DOWN and then releasing both keys. |
+        | `Press Keys` | text_field | ALT            | ARROW_DOWN | # Pressing "ALT" key and then pressing ARROW_DOWN.                                |
+        | `Press Keys` | text_field | CTRL+c         |            | # Pressing CTRL key down, sends string "c" and then releases CTRL key.            |
+        | `Press Keys` | button     | RETURN         |            | # Pressing "ENTER" key to element.                                                |
         """
-        self.info("Clicking link '%s'." % locator)
-        self.find_element(locator, tag='link').click()
+        parsed_keys = self._parse_keys(*keys)
+        if is_truthy(locator):
+            self.info('Sending key(s) %s to %s element.' % (keys, locator))
+        else:
+            self.info('Sending key(s) %s to page.' % str(keys))
+        self._press_keys(locator, parsed_keys)
+
+    def _press_keys(self, locator, parsed_keys):
+        if is_truthy(locator):
+            element = self.find_element(locator)
+        else:
+            element = None
+        for parsed_key in parsed_keys:
+            actions = ActionChains(self.driver)
+            special_keys = []
+            for key in parsed_key:
+                if self._selenium_keys_has_attr(key.original):
+                    special_keys = self._press_keys_special_keys(actions, element, parsed_key,
+                                                                 key, special_keys)
+                else:
+                    self._press_keys_normal_keys(actions, element, key)
+            for special_key in special_keys:
+                self.info('Releasing special key %s.' % special_key.original)
+                actions.key_up(special_key.converted)
+            actions.perform()
+
+    def _press_keys_normal_keys(self, actions, element, key):
+        self.info('Sending key%s %s' % (plural_or_not(key.converted), key.converted))
+        if element:
+            actions.send_keys_to_element(element, key.converted)
+        else:
+            actions.send_keys(key.converted)
+
+    def _press_keys_special_keys(self, actions, element, parsed_key, key, special_keys):
+        if len(parsed_key) == 1 and element:
+            self.info('Pressing special key %s to element.' % key.original)
+            actions.send_keys_to_element(element, key.converted)
+        elif len(parsed_key) == 1 and not element:
+            self.info('Pressing special key %s to browser.' % key.original)
+            actions.send_keys(key.converted)
+        else:
+            self.info('Pressing special key %s down.' % key.original)
+            actions.key_down(key.converted)
+            special_keys.append(key)
+        return special_keys
 
     @keyword
     def get_all_links(self):
@@ -749,7 +925,7 @@ return !element.dispatchEvent(evt);
         action.click_and_hold(element).perform()
 
     @keyword
-    def page_should_contain_link(self, locator, message=None, loglevel='INFO'):
+    def page_should_contain_link(self, locator, message=None, loglevel='TRACE'):
         """Verifies link identified by ``locator`` is found from current page.
 
         See the `Locating elements` section for details about the locator
@@ -762,7 +938,7 @@ return !element.dispatchEvent(evt);
         self.assert_page_contains(locator, 'link', message, loglevel)
 
     @keyword
-    def page_should_not_contain_link(self, locator, message=None, loglevel='INFO'):
+    def page_should_not_contain_link(self, locator, message=None, loglevel='TRACE'):
         """Verifies link identified by ``locator`` is not found from current page.
 
         See the `Locating elements` section for details about the locator
@@ -773,21 +949,6 @@ return !element.dispatchEvent(evt);
         and ``loglevel`` arguments.
         """
         self.assert_page_not_contains(locator, 'link', message, loglevel)
-
-    @keyword
-    def click_image(self, locator):
-        """Clicks an image identified by ``locator``.
-
-        See the `Locating elements` section for details about the locator
-        syntax. When using the default locator strategy, images are searched
-        using ``id``, ``name``, ``src`` and ``alt``.
-        """
-        self.info("Clicking image '%s'." % locator)
-        element = self.find_element(locator, tag='image', required=False)
-        if not element:
-            # A form may have an image as it's submit trigger.
-            element = self.find_element(locator, tag='input')
-        element.click()
 
     @keyword
     def mouse_down_on_image(self, locator):
@@ -802,7 +963,7 @@ return !element.dispatchEvent(evt);
         action.click_and_hold(element).perform()
 
     @keyword
-    def page_should_contain_image(self, locator, message=None, loglevel='INFO'):
+    def page_should_contain_image(self, locator, message=None, loglevel='TRACE'):
         """Verifies image identified by ``locator`` is found from current page.
 
         See the `Locating elements` section for details about the locator
@@ -815,7 +976,7 @@ return !element.dispatchEvent(evt);
         self.assert_page_contains(locator, 'image', message, loglevel)
 
     @keyword
-    def page_should_not_contain_image(self, locator, message=None, loglevel='INFO'):
+    def page_should_not_contain_image(self, locator, message=None, loglevel='TRACE'):
         """Verifies image identified by ``locator`` is found from current page.
 
         See the `Locating elements` section for details about the locator
@@ -829,13 +990,13 @@ return !element.dispatchEvent(evt);
 
     @keyword
     def get_matching_xpath_count(self, xpath, return_str=True):
-        """Deprecated. Use `Get Element Count` instead."""
+        """*DEPRECATED in SeleniumLibrary 3.2.* Use `Get Element Count` instead."""
         count = self.get_element_count('xpath:' + xpath)
         return str(count) if is_truthy(return_str) else count
 
     @keyword
-    def xpath_should_match_x_times(self, xpath, x, message=None, loglevel='INFO'):
-        """Deprecated, use `Page Should Contain Element` with ``limit`` argument instead."""
+    def xpath_should_match_x_times(self, xpath, x, message=None, loglevel='TRACE'):
+        """*DEPRECATED in SeleniumLibrary 3.2.* Use `Page Should Contain Element` with ``limit`` argument instead."""
         self.locator_should_match_x_times('xpath:'+xpath, x, message, loglevel)
 
     @keyword
@@ -933,11 +1094,57 @@ return !element.dispatchEvent(evt);
         keys = []
         for item in modifiers:
             item = item.strip()
-            if item == 'CTRL':
-                item = 'CONTROL'
+            item = self._parse_aliases(item)
             if hasattr(Keys, item):
                 keys.append(getattr(Keys, item))
             else:
                 raise ValueError("'%s' modifier does not match to Selenium Keys"
                                  % item)
         return keys
+
+    def _parse_keys(self, *keys):
+        if not keys:
+            raise AssertionError('"keys" argument can not be empty.')
+        list_keys = []
+        for key in keys:
+            separate_keys = self._separate_key(key)
+            separate_keys = self._convert_special_keys(separate_keys)
+            list_keys.append(separate_keys)
+        return list_keys
+
+    def _parse_aliases(self, key):
+        if key == 'CTRL':
+            return 'CONTROL'
+        if key == 'ESC':
+            return 'ESCAPE'
+        return key
+
+    def _separate_key(self, key):
+        one_key = ''
+        list_keys = []
+        for char in key:
+            if char == '+' and one_key != '':
+                list_keys.append(one_key)
+                one_key = ''
+            else:
+                one_key += char
+        if one_key:
+            list_keys.append(one_key)
+        return list_keys
+
+    def _convert_special_keys(self, keys):
+        KeysRecord = namedtuple('KeysRecord', 'converted, original')
+        converted_keys = []
+        for key in keys:
+            key = self._parse_aliases(key)
+            if self._selenium_keys_has_attr(key):
+                converted_keys.append(KeysRecord(getattr(Keys, key), key))
+            else:
+                converted_keys.append(KeysRecord(key, key))
+        return converted_keys
+
+    def _selenium_keys_has_attr(self, key):
+        try:
+            return hasattr(Keys, key)
+        except UnicodeError:  # To support Python 2 and non ascii characters.
+            return False

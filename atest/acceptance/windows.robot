@@ -22,6 +22,16 @@ Get Window Titles
     ${titles}=    Get Window Titles
     Should Be Equal    ${titles}    ${exp_titles}
 
+Get Window Titles With Non ASCII Title
+    ${exp_titles}=    Create List    Click link to show a popup window    äää
+    Click Link    my popup
+    Wait Until New Window Is Open
+    ${parent} =    Select Window    Original
+    Click Element    unicode
+    ${titles} =    Get Window Titles
+    Should Be Equal    ${titles}    ${exp_titles}
+    [Teardown]  Select Window    ${parent}
+
 Get Title
     ${title} =    Get Title
     Should Be Equal As Strings    ${title}    Click link to show a popup window
@@ -60,10 +70,10 @@ Get and Set Window Size
 
 Set Window Size using strings
     [Tags]  Known Issue Internet Explorer    Known Issue Safari
-    Set Window Size    456    654
+    Set Window Size    600    800
     ${width}    ${height}=    Get Window Size
-    Should Be Equal    ${width}    ${456}
-    Should Be Equal    ${height}    ${654}
+    Should Be Equal    ${width}    ${600}
+    Should Be Equal    ${height}    ${800}
 
 Get and Set Window Position
     [Tags]  Known Issue Chrome    Known Issue Safari

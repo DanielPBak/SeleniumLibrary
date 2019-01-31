@@ -20,6 +20,7 @@ from selenium.common.exceptions import NoSuchWindowException
 
 from SeleniumLibrary.base import keyword, LibraryComponent
 from SeleniumLibrary.locators import WindowManager
+from SeleniumLibrary.utils import plural_or_not
 
 
 class WindowKeywords(LibraryComponent):
@@ -94,12 +95,12 @@ class WindowKeywords(LibraryComponent):
 
         - The ``strategy:value`` syntax is only supported by SeleniumLibrary
           3.0 and newer.
-        - Earlier versions supported aliases ``None``, ``null`` and the
-          empty string for selecting the main window, and alias ``self``
-          for selecting the current window. These aliases were deprecated
-          in SeleniumLibrary 3.0.
         - Prior to SeleniumLibrary 3.0 matching windows by name, title
           and URL was case-insensitive.
+        - Earlier versions supported aliases ``None``, ``null`` and the
+          empty string for selecting the main window, and alias ``self``
+          for selecting the current window. Support for these aliases were
+          removed in SeleniumLibrary 3.2.
         """
         epoch = time.time()
         timeout = epoch if is_falsy(timeout) else timestr_to_secs(timeout) + epoch
@@ -127,7 +128,7 @@ class WindowKeywords(LibraryComponent):
 
     @keyword
     def list_windows(self):
-        """Deprecated. Use `Get Window Handles` instead."""
+        """*DEPRECATED in SeleniumLibrary 3.2.* Use `Get Window Handles` instead."""
         return self.get_window_handles()
 
     @keyword
@@ -219,10 +220,10 @@ class WindowKeywords(LibraryComponent):
 
     def _log_list(self, items, what='item'):
         msg = [
-            'Altogether {} {}.'.format(
-                len(items), what if len(items) == 1 else '{}s'.format(what))
+            'Altogether %s %s%s.'
+            % (len(items), what, plural_or_not(items))
         ]
         for index, item in enumerate(items):
-            msg.append('{}: {}'.format(index + 1, item))
+            msg.append('%s: %s' % (index + 1, item))
         self.info('\n'.join(msg))
         return items

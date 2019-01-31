@@ -39,7 +39,7 @@ from SeleniumLibrary.locators import ElementFinder
 from SeleniumLibrary.utils import Deprecated, LibraryListener, timestr_to_secs
 
 
-__version__ = '3.2.0.dev1'
+__version__ = '3.3.2.dev1'
 
 
 class SeleniumLibrary(DynamicCore):
@@ -60,6 +60,7 @@ class SeleniumLibrary(DynamicCore):
     - `Timeouts, waits and delays`
     - `Run-on-failure functionality`
     - `Boolean arguments`
+    - `Thread support`
     - `Importing`
     - `Shortcuts`
     - `Keywords`
@@ -227,7 +228,10 @@ class SeleniumLibrary(DynamicCore):
     SeleniumLibrary contains various keywords that have an optional
     ``timeout`` argument that specifies how long these keywords should
     wait for certain events or actions. These keywords include, for example,
-    ``Wait ...`` keywords and keywords related to alerts.
+    ``Wait ...`` keywords and keywords related to alerts. Additionally
+    `Execute Async Javascript`. although it does not have ``timeout``,
+    argument, uses timeout to define how long asynchronous JavaScript
+    can run.
 
     The default timeout these keywords use can be set globally either by
     using the `Set Selenium Timeout` keyword or with the ``timeout`` argument
@@ -302,6 +306,14 @@ class SeleniumLibrary(DynamicCore):
 
     Note that prior to SeleniumLibrary 3.0, all non-empty strings, including
     ``false``, ``no`` and ``none``, were considered true.
+
+    = Thread support =
+
+    SeleniumLibrary is not thread safe. This is mainly due because the underlying
+    [https://github.com/SeleniumHQ/selenium/wiki/Frequently-Asked-Questions#q-is-webdriver-thread-safe|
+    Selenium tool is not thread safe] within one browser/driver instance.
+    Because of the limitation in the Selenium side, the keywords or the
+    API provided the SeleniumLibrary is not thread safe.
     """
     ROBOT_LIBRARY_SCOPE = 'GLOBAL'
     ROBOT_LIBRARY_VERSION = __version__

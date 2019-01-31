@@ -5,38 +5,6 @@ Default Tags      assertions
 Resource          ../resource.robot
 
 *** Test Cases ***
-Location Should Be
-    [Documentation]    LOG 2:4 Current location is '${FRONT PAGE}'.
-    Location Should Be    ${FRONT PAGE}
-    Location Should Be    ${FRONT PAGE}  message=taco
-    Location Should Be    ${FRONT PAGE}  message=None
-    Run Keyword And Expect Error
-    ...    Location should have been 'non existing' but was '${FRONT PAGE}'.
-    ...    Location Should Be    non existing
-    Run Keyword And Expect Error
-    ...    not a url
-    ...    Location Should Be    non existing  message=not a url
-    Run Keyword And Expect Error
-    ...    Location should have been 'non existing' but was 'http://localhost:7000/html/'.
-    ...    Location Should Be    non existing  message=None
-
-
-Location Should Contain
-    [Documentation]    LOG 2:4 Current location contains 'html'.
-    Location Should Contain    html
-    Location Should Contain    html  message=foobar
-    Location Should Contain    html  message=None
-    Run Keyword And Expect Error
-    ...    Location should have contained 'not a location' but it was '${FRONT PAGE}'.
-    ...    Location Should Contain    not a location
-    Run Keyword And Expect Error
-    ...    did not find it
-    ...    Location Should Contain    not a location  message=did not find it
-    Run Keyword And Expect Error
-    ...    Location should have contained 'not a location' but it was 'http://localhost:7000/html/'.
-    ...    Location Should Contain    not a location  message=None
-
-
 Title Should Be
     [Documentation]    LOG 2:4 Page title is '(root)/index.html'.
     Title Should Be    (root)/index.html
@@ -47,26 +15,36 @@ Title Should Be
     ...    Page title was not expected
     ...    Title Should Be    not a title   message=Page title was not expected
 
-
 Page Should Contain
-    [Documentation]    LOG 2:7 Current page contains text 'needle'.
-    ...    LOG 4.1:14 REGEXP: (?i)<html.*</html>
+    [Documentation]    The last step fails and doesn't contain the html content.
+    ...    FAIL Page should have contained text 'non existing text' but did not.
+    ...    LOG 2:7 Current page contains text 'needle'.
+    ...    LOG 3:7 INFO Current page contains text 'This is the haystack'.
+    ...    LOG 4:14 FAIL Page should have contained text 'non existing text' but did not.
     Page Should Contain    needle
     Page Should Contain    This is the haystack
-    Run Keyword And Expect Error
-    ...    Page should have contained text 'non existing text' but did not.
-    ...    Page Should Contain    non existing text
+    Page Should Contain    non existing text
 
-Page Should Contain with text having internal elements
+Page Should Contain With Text Having Internal Elements
     Page Should Contain    This is the haystack and somewhere on this page is a needle.
     Go to page "links.html"
     Page Should Contain    Relative with text after
 
-Page Should Contain With Custom Log Level
-    [Documentation]    LOG 2.1:14 DEBUG REGEXP: (?i)<html.*</html>
-    Run Keyword And Expect Error
-    ...    Page should have contained text 'non existing text' but did not.
-    ...    Page Should Contain    non existing text    DEBUG
+Page Should Contain With Custom Log Level DEBUG
+    [Documentation]    Html content is shown at DEBUG level.
+    ...    FAIL Page should have contained text 'non existing text' but did not.
+    ...    LOG 2:14 DEBUG REGEXP: (?i)<html.*</html>
+    ...    LOG 2:15 FAIL Page should have contained text 'non existing text' but did not.
+    Page Should Contain    non existing text    DEBUG
+
+Page Should Contain With Custom Log Level TRACE
+    [Documentation]    Html content is shown at DEBUG level.
+    ...    FAIL Page should have contained text 'non existing text' but did not.
+    ...    LOG 3:15 TRACE REGEXP: (?i)<html.*</html>
+    ...    LOG 3:16 FAIL Page should have contained text 'non existing text' but did not.
+    Set Log Level    TRACE
+    Page Should Contain    non existing text    TRACE
+    [Teardown]    Set Log Level    DEBUG
 
 Page Should Contain With Disabling Source Logging
     [Documentation]    LOG 3:2 NONE
@@ -81,12 +59,12 @@ Page Should Contain With Frames
     Page Should Contain    You're looking at right.
 
 Page Should Not Contain
-    [Documentation]    LOG 2:11 Current page does not contain text 'non existing text'.
-    ...    LOG 3.1:10 REGEXP: (?i)<html.*</html>
+    [Documentation]    Default log level does not have html output.
+    ...    FAIL Page should not have contained text 'needle'.
+    ...    LOG 2:11 Current page does not contain text 'non existing text'.
+    ...    LOG 3:10 FAIL Page should not have contained text 'needle'.
     Page Should Not Contain    non existing text
-    Run Keyword And Expect Error
-    ...    Page should not have contained text 'needle'.
-    ...    Page Should Not Contain    needle
+    Page Should Not Contain    needle
 
 Page Should Not Contain With Custom Log Level
     [Documentation]    LOG 2.1:10 DEBUG REGEXP: (?i)<html.*</html>
@@ -374,5 +352,5 @@ Page Should Not Contain Button In Input Tag
 Get All Links
     [Setup]    Go To Page "links.html"
     ${links}=    Get All Links
-    Length Should Be    ${links}    19
+    Length Should Be    ${links}    20
     List Should Contain Value    ${links}    bold_id

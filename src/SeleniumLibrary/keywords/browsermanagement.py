@@ -230,7 +230,7 @@ class BrowserManagementKeywords(LibraryComponent):
         New in SeleniumLibrary 3.2
         """
         return self.driver.session_id
-        
+
     @keyword
     def get_source(self):
         """Returns the entire HTML source of the current page or frame."""
@@ -248,7 +248,7 @@ class BrowserManagementKeywords(LibraryComponent):
 
     @keyword
     def location_should_be(self, url, message=None):
-        """Verifies that current URL is exactly ``url`.
+        """Verifies that current URL is exactly ``url``.
 
         The ``url`` argument contains the exact url that should exist in browser.
 
@@ -269,7 +269,7 @@ class BrowserManagementKeywords(LibraryComponent):
     def location_should_contain(self, expected, message=None):
         """Verifies that current URL contains ``expected``.
 
-        The ``url`` argument contains the expected value in url.
+        The ``expected`` argument contains the expected value in url.
 
         The ``message`` argument can be used to override the default error
         message.
@@ -296,8 +296,8 @@ class BrowserManagementKeywords(LibraryComponent):
         """Logs and returns the HTML source of the current page or frame.
 
         The ``loglevel`` argument defines the used log level. Valid log
-        levels are ``WARN``, ``INFO`` (default), ``DEBUG``, and ``NONE``
-        (no logging).
+        levels are ``WARN``, ``INFO`` (default), ``DEBUG``, ``TRACE``
+        and ``NONE`` (no logging).
         """
         source = self.get_source()
         self.log(source, loglevel)

@@ -151,7 +151,7 @@ class SelectElementKeywords(LibraryComponent):
                                  % (locator, selection))
 
     @keyword
-    def page_should_contain_list(self, locator, message=None, loglevel='INFO'):
+    def page_should_contain_list(self, locator, message=None, loglevel='TRACE'):
         """Verifies selection list ``locator`` is found from current page.
 
         See `Page Should Contain Element` for explanation about ``message``
@@ -163,7 +163,7 @@ class SelectElementKeywords(LibraryComponent):
         self.assert_page_contains(locator, 'list', message, loglevel)
 
     @keyword
-    def page_should_not_contain_list(self, locator, message=None, loglevel='INFO'):
+    def page_should_not_contain_list(self, locator, message=None, loglevel='TRACE'):
         """Verifies selection list ``locator`` is not found from current page.
 
         See `Page Should Contain Element` for explanation about ``message``
@@ -191,7 +191,7 @@ class SelectElementKeywords(LibraryComponent):
 
     @keyword
     def select_from_list(self, locator, *options):
-        """Deprecated. Use `Select From List By Label/Value/Index` instead.
+        """*DEPRECATED in SeleniumLibrary 3.2.* Use `Select From List By Label/Value/Index` instead.
 
         This keyword selects options based on labels or values, which makes
         it very complicated and slow. It has been deprecated in
@@ -210,17 +210,17 @@ class SelectElementKeywords(LibraryComponent):
         for item in options:
             try:
                 select.select_by_value(item)
-            except:
+            except Exception:
                 try:
                     select.select_by_visible_text(item)
-                except:
+                except Exception:
                     non_existing_items = non_existing_items + [item]
                     continue
         if any(non_existing_items):
             if select.is_multiple:
                 raise ValueError("Options '%s' not in list '%s'." % (", ".join(non_existing_items), locator))
             else:
-                if any (non_existing_items[:-1]):
+                if any(non_existing_items[:-1]):
                     items_str = non_existing_items[:-1] and "Option(s) '%s'" % ", ".join(non_existing_items[:-1])
                     self.warn("%s not found within list '%s'." % (items_str, locator))
                 if options and options[-1] in non_existing_items:
@@ -307,7 +307,7 @@ class SelectElementKeywords(LibraryComponent):
 
     @keyword
     def unselect_from_list(self, locator, *items):
-        """Deprecated. Use `Unselect From List By Label/Value/Index` instead.
+        """*DEPRECATED in SeleniumLibrary 3.2.* Use `Unselect From List By Label/Value/Index` instead.
 
         This keyword unselects options based on labels or values, which makes
         it very complicated and slow. It has been deprecated in

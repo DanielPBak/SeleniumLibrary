@@ -3,10 +3,22 @@ Suite Setup       Go To Page "javascript/click_modifier.html"
 Test Setup        Initialize Page
 Resource          ../resource.robot
 
-
 *** Test Cases ***
 Click Element Modifier CTRL
     Click Element    Button    modifier=CTRL
+    Element Text Should Be    output    CTRL click
+
+Click Link Modifier CTRL
+    Click Link    link text    modifier=CTRL
+    Element Text Should Be    output    CTRL click
+    [Teardown]    Close Popup Window
+
+Click Button Modifier CTRL
+    Click Button    Click me!    modifier=CTRL
+    Element Text Should Be    output    CTRL click
+
+Click Image Modifier CTRL
+    Click Image    robot    modifier=CTRL
     Element Text Should Be    output    CTRL click
 
 Click Element Modifier ALT
@@ -34,3 +46,8 @@ Click Element Wrong Modifier
 Initialize Page
     Reload Page
     Element Text Should Be    output    initial output
+
+Close Popup Window
+    Select Window    myName    timeout=5s
+    Close Window
+    Select Window    MAIN      timeout=5s

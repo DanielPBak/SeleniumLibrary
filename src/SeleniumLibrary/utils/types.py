@@ -14,19 +14,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Originally based on  Robot Framework 3.0.2 robot.utils.robottypes
-# Can be removed when library minimum required Robot Framework version is
-# greater than 3.0.2. Then Robot Framework is_truthy should also support
-# string NONE as Python False.
-
-import sys
-
-
-if sys.version_info[0] == 2:
-    def is_string(item):
-        return isinstance(item, (str, unicode))
-else:
-    from robot.utils import is_string
+# Originally based on  Robot Framework 3.0.2 robot.utils.robottypes and
+# robot.utils.PY3 Can be removed when library minimum required Robot Framework
+# version is greater than 3.0.2. Then Robot Framework is_truthy should
+# also support string NONE as Python False.
+from robot.utils import is_string
+try:
+    from robot.utils import PY3
+except ImportError:
+    import sys
+    PY3 = sys.version_info[0] == 3
 
 
 def is_truthy(item):

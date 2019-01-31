@@ -7,7 +7,7 @@ Library           String
 *** Test Cases ***
 Get Elements
     @{links}=    Get WebElements    //div[@id="div_id"]/a
-    Length Should Be    ${links}    11
+    Length Should Be    ${links}    12
     ${no_elements} =     Get WebElements    id:non_existing_elem
     Should Be Empty    ${no_elements}
 
@@ -40,22 +40,19 @@ Assign Id To Element
     Page Should Not Contain Element    my id
 
 Get Element Attribute
-    ${id}=    Get Element Attribute    link=Link with id@id
+    ${id}=    Get Element Attribute    link:Link with id    id
     Should Be Equal    ${id}    some_id
-    ${id}=    Get Element Attribute    dom=document.getElementsByTagName('a')[3]@id
+    ${id}=    Get Element Attribute    dom:document.getElementsByTagName('a')[3]    id
     Should Be Equal    ${id}    some_id
-    ${class}=    Get Element Attribute    second_div@class
+    ${class}=    Get Element Attribute    second_div    class
     Should Be Equal    ${class}    Second Class
     ${id}=    Get Element Attribute    link=Link with id    id
-    Should Be Equal    ${id}    some_id
-    ${element_by_dom}=    Get Webelement    dom=document.getElementsByTagName('a')[3]
-    ${id}=    Get Element Attribute    ${element_by_dom}    id
     Should Be Equal    ${id}    some_id
     ${second_div}=    Get Webelement    second_div
     ${class}=    Get Element Attribute    ${second_div}    class
     Should Be Equal    ${class}    Second Class
 
-Get Element Attribute Value Should Be Should Be Succesfull 
+Get Element Attribute Value Should Be Should Be Succesfull
     Element Attribute Value Should Be  link=Absolute external link  href  http://www.google.com/
 
 Get Element Attribute And Element Attribute Value Should Be Should have same results
@@ -105,3 +102,24 @@ Get Empty Element Size
     [Tags]  Known Issue Internet Explorer
     ${width}  ${height}=  Get Element Size  id=emptyDiv
     Should be Equal    ${height}    ${0}
+
+Cover Element
+    Cover Element  //img[@src="image.jpg"]
+    Element Should Not be Visible  //img[@src="image.jpg"]
+    Element Should be Visible  //div[@name="covered"]
+
+Cover Element should cover all matching elements
+    Cover Element  //img[@src="image.jpg"]
+    Element Should Not be Visible  //img[@src="image.jpg"]
+    ${count}  Get Element Count  //div[@name="covered"]
+    Should Be equal As Integers  ${count}  2
+
+Cover Element can cover just one element
+    Cover Element  (//img[@src="image.jpg"])[1]
+    Element Should be Visible  //img[@src="image.jpg"]
+    ${count}  Get Element Count  //div[@name="covered"]
+    Should Be equal As Integers  ${count}  1
+
+Cover Elements should throw exception when locator is invalid
+    Run Keyword And Expect Error  No element with locator '//img?@src="inexistent"?' found.
+    ...  Cover Element  //img[@src="inexistent"]
